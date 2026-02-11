@@ -25,7 +25,7 @@ It was modified by `Ben Welsh <https://palewi.re/who-is-ben-welsh/>`_ in Decembe
 What you will make
 ------------------
 
-This tutorial will guide you through the process of writing a Python script that can extract the list of state legislative audit reports from `a state government website <https://www.ola.state.md.us/Search/Report?keyword=&agencyId=&dateFrom=&dateTo=>`_ and save it as comma-delimited text ready for analysis.
+This tutorial will guide you through the process of writing a Python script that can extract the list of sanctioned physicians from `a state government website <https://www.mbp.state.md.us/sanctions.aspx>`_ and save it as comma-delimited text ready for analysis.
 
 Prelude: Prerequisites
 ----------------------
@@ -45,13 +45,13 @@ You should see something like this after you hit enter:
 .. code-block:: bash
 
     $ python -V
-    Python 3.10.4
+    Python 3.12.1
 
 ***********************
 Act 1: Hello Codespaces
 ***********************
 
-Start at the `GitHub URL for this repository <https://github.com/dwillis/first-web-scraper-umd>`_
+Start at the `GitHub URL for this repository <https://github.com/NewsAppsUMD/first-web-scraper-umd>`_
 
 Click the green "Use this template" button and choose "Open in a codespace". You should see something like this:
 
@@ -676,7 +676,7 @@ Act 3: Web scraping
 
 Now that we've covered all the fundamentals, it's time to get to work and write a web scraper.
 
-The target is a regularly updated `list of disciplinary alerts from Maryland's Board of Physicians <https://www.mbp.state.md.us/disciplinary.aspx>`_. These include doctors who have had their medical licenses suspended or revoked for misconduct, as well as the lifting of suspensions.
+The target is a regularly updated `list of sanctioned physicians from Maryland's Board of Physicians <https://www.mbp.state.md.us/sanctions.aspx>`_. These include doctors who currently have active sanctions, suspensions, or other restrictions on their medical licenses.
 
 Installing dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -709,7 +709,7 @@ By the time we're finished, we want to have extracted that data, now encrusted i
 
 In order to scrape a website, we need to understand how a typical webpage is put together.
 
-To view the HTML code that makes up this page, open up a browser and visit `our target <https://www.mbp.state.md.us/disciplinary.aspx>`_. Then right click with your mouse and select "View Source." You can do this for any page on the web.
+To view the HTML code that makes up this page, open up a browser and visit `our target <https://www.mbp.state.md.us/sanctions.aspx>`_. Then right click with your mouse and select "View Source." You can do this for any page on the web.
 
 .. figure:: _static/img/source.png
 
@@ -735,11 +735,11 @@ At this stage, your job is to find a pattern or identifier in the code for the e
 In the best cases, you can extract content by using the ``id`` or ``class`` already assigned to the element you'd like to extract. An 'id' is intended to act as the unique identifer a specific item on a page. A 'class' is used to label a
 specific type of item on a page. So, there maybe may instances of a class on a page.
 
-On the Board of Physicians page, there is only one table in the HTML's ``body`` tag. The table is identified by a class.
+On the Board of Physicians page, there is only one table in the HTML's ``body`` tag. The table is identified by multiple classes.
 
 .. code:: html
 
-    <table class="table table-hover">
+    <table class="table table-hover align-middle">
 
 Extracting an HTML table
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -766,7 +766,7 @@ The first step is to import the requests library and download the state webpage.
 
     import requests
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0'})
     html = response.content
     print(html)
@@ -785,7 +785,7 @@ Next import the ``BeautifulSoup`` HTML parsing library and feed it the page.
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0'})
     html = response.content
 
@@ -806,7 +806,7 @@ Next we take all the detective work we did with the page's HTML above and conver
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -830,7 +830,7 @@ BeautifulSoup gets us going by allowing us to dig down into our table and return
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -854,7 +854,7 @@ Next we can loop through each of the cells in each row by select them inside the
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -873,7 +873,7 @@ Again, save and run the script. (This might seem repetitive, but it is the const
 
 Now that we have found the data we want to extract, we need to structure it in a way that can be written out to a comma-delimited text file. That won't be hard since CSVs aren't any more than a grid of columns and rows, much like a table.
 
-Let's start by adding each cell in a row to a new Python list, and we'll strip off any whitespace at the beginning or end of each cell.
+Let's start by adding each cell in a row to a new Python list, and we'll clean up the whitespace in each cell. We'll use ``' '.join(cell.text.split())`` which splits the text on any whitespace and rejoins it with single spaces, removing extra spaces within the text as well as at the edges.
 
 .. code-block:: python
     :emphasize-lines: 12,14-16
@@ -881,7 +881,7 @@ Let's start by adding each cell in a row to a new Python list, and we'll strip o
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -891,7 +891,7 @@ Let's start by adding each cell in a row to a new Python list, and we'll strip o
     for row in table.find_all('tr'):
         list_of_cells = []
         for cell in row.find_all('td'):
-            text = cell.text.strip()
+            text = ' '.join(cell.text.split())
             list_of_cells.append(text)
         print(list_of_cells)
 
@@ -909,7 +909,7 @@ Those lists can now be lumped together into one big list of lists, which, when y
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -920,7 +920,7 @@ Those lists can now be lumped together into one big list of lists, which, when y
     for row in table.find_all('tr'):
         list_of_cells = []
         for cell in row.find_all('td'):
-            text = cell.text.strip()
+            text = ' '.join(cell.text.split())
             list_of_cells.append(text)
         list_of_rows.append(list_of_cells)
 
@@ -932,15 +932,15 @@ Save and rerun the script. You should see a big bunch of data dumped out into th
 
   $ python scrape.py
 
-We've got much of the information we want, but there's an important thing missing - the links to the various reports! Using `cell.text` just gives us the text inside an HTML tag, not any HTML it contains, including URLs. We can get those by checking to see if there is a link and, if so, grabbing the `href` tag. For convenience, we're going to just grab the first link in a cell.
+We've got much of the information we want, but there's an important thing missing - the links to the various reports! Using `cell.text` just gives us the text inside an HTML tag, not any HTML it contains, including URLs. We can get those by checking to see if there is a link and, if so, grabbing the `href` tag instead of the text.
 
 .. code-block:: python
-    :emphasize-lines: 15-16
+    :emphasize-lines: 15-18
 
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -953,8 +953,9 @@ We've got much of the information we want, but there's an important thing missin
         for cell in row.find_all('td'):
             if cell.find('a'):
                 list_of_cells.append(cell.find('a')['href'])
-            text = cell.text.strip()
-            list_of_cells.append(text)
+            else:
+                text = ' '.join(cell.text.split())
+                list_of_cells.append(text)
         list_of_rows.append(list_of_cells)
 
     print(list_of_rows)
@@ -970,7 +971,7 @@ To write that list out to a comma-delimited file, we need to import Python's bui
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
@@ -983,8 +984,9 @@ To write that list out to a comma-delimited file, we need to import Python's bui
         for cell in row.find_all('td'):
             if cell.find('a'):
                 list_of_cells.append(cell.find('a')['href'])
-            text = cell.text.strip()
-            list_of_cells.append(text)
+            else:
+                text = ' '.join(cell.text.split())
+                list_of_cells.append(text)
         list_of_rows.append(list_of_cells)
 
     outfile = open("alerts.csv", "w")
@@ -1015,12 +1017,12 @@ But rather than bend over backwords to dig them out of the page, let's try somet
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
     soup = BeautifulSoup(html, features="html.parser")
-    table = soup.find('tbody', attrs={'class': 'stripe'})
+    table = soup.find('tbody')
 
     list_of_rows = []
     for row in table.find_all('tr'):
@@ -1028,8 +1030,9 @@ But rather than bend over backwords to dig them out of the page, let's try somet
         for cell in row.find_all('td'):
             if cell.find('a'):
                 list_of_cells.append(cell.find('a')['href'])
-            text = cell.text.strip()
-            list_of_cells.append(text)
+            else:
+                text = ' '.join(cell.text.split())
+                list_of_cells.append(text)
         list_of_rows.append(list_of_cells)
 
     outfile = open("alerts.csv", "w")
@@ -1046,18 +1049,18 @@ Save and run the script once more.
 Our headers are now there, but there's still a problem here: the URLs are relative, not full ones. We can't just copy them into a browser or click on them. Let's fix that:
 
 .. code-block:: python
-    :emphasize-lines: 13,22
+    :emphasize-lines: 16
 
     import csv
     import requests
     from bs4 import BeautifulSoup
 
-    url = 'https://www.mbp.state.md.us/disciplinary.aspx'
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = response.content
 
     soup = BeautifulSoup(html, features="html.parser")
-    table = soup.find('tbody', attrs={'class': 'stripe'})
+    table = soup.find('tbody')
 
     list_of_rows = []
     for row in table.find_all('tr'):
@@ -1065,8 +1068,9 @@ Our headers are now there, but there's still a problem here: the URLs are relati
         for cell in row.find_all('td'):
             if cell.find('a'):
                 list_of_cells.append("https://www.mbp.state.md.us" + cell.find('a')['href'])
-            text = cell.text.strip()
-            list_of_cells.append(text)
+            else:
+                text = ' '.join(cell.text.split())
+                list_of_cells.append(text)
         list_of_rows.append(list_of_cells)
 
     outfile = open("alerts.csv", "w")
@@ -1084,3 +1088,202 @@ And you've finished the class. Congratulations! You're now a web scraper.
 
 .. figure:: _static/img/xls-2.png
     :width: 600px
+
+********************
+Bonus: Year Selector
+********************
+
+You may have noticed that the sanctions page has a dropdown menu that allows you to select different years. By default, it shows the current year (2026), but you can view sanctions from previous years going back to 2010.
+
+Let's enhance our scraper to accept a year as a command-line argument and include it in our output.
+
+Getting command-line arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Python has a built-in module called ``sys`` that gives us access to command-line arguments. When you run a script like ``python scrape.py 2025``, the year "2025" becomes an argument we can capture.
+
+Let's modify our script to accept an optional year argument, defaulting to the current year if none is provided.
+
+.. code-block:: python
+    :emphasize-lines: 2,3,7-11
+
+    import csv
+    import sys
+    from datetime import datetime
+    import requests
+    from bs4 import BeautifulSoup
+
+    # Get year from command line or use current year
+    if len(sys.argv) > 1:
+        year = sys.argv[1]
+    else:
+        year = str(datetime.now().year)
+
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+    html = response.content
+
+The ``sys.argv`` list contains all command-line arguments. The first item (``sys.argv[0]``) is always the script name, so ``sys.argv[1]`` is the first actual argument. We check if it exists using ``len(sys.argv) > 1``.
+
+Making a POST request with form data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The year dropdown works by submitting a form to the server. When you select a different year and the page reloads, it's sending a POST request with form data. We need to simulate that.
+
+Looking at the page source, we can see the form uses ASP.NET ViewState (those hidden fields with long encoded values). Fortunately, we can make this work by sending a POST request with the year parameter:
+
+.. code-block:: python
+    :emphasize-lines: 14-18
+
+    import csv
+    import sys
+    from datetime import datetime
+    import requests
+    from bs4 import BeautifulSoup
+
+    # Get year from command line or use current year
+    if len(sys.argv) > 1:
+        year = sys.argv[1]
+    else:
+        year = str(datetime.now().year)
+
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
+    
+    # Make POST request with year parameter
+    response = requests.post(url, 
+                            data={'ddlYear': year},
+                            headers={'User-Agent': 'Mozilla/5.0'})
+    html = response.content
+
+We've changed from ``requests.get()`` to ``requests.post()`` and added a ``data`` parameter with the form field name ``ddlYear`` set to our chosen year.
+
+Adding the year to our output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now let's include the year as a column in our CSV output so we know which year each record is from:
+
+.. code-block:: python
+    :emphasize-lines: 27,31
+
+    import csv
+    import sys
+    from datetime import datetime
+    import requests
+    from bs4 import BeautifulSoup
+
+    # Get year from command line or use current year
+    if len(sys.argv) > 1:
+        year = sys.argv[1]
+    else:
+        year = str(datetime.now().year)
+
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
+    
+    # Make POST request with year parameter
+    response = requests.post(url, 
+                            data={'ddlYear': year},
+                            headers={'User-Agent': 'Mozilla/5.0'})
+    html = response.content
+
+    soup = BeautifulSoup(html, features="html.parser")
+    table = soup.find('tbody')
+
+    list_of_rows = []
+    for row in table.find_all('tr'):
+        list_of_cells = []
+        list_of_cells.append(year)  # Add year as first column
+        for cell in row.find_all('td'):
+            if cell.find('a'):
+                href = cell.find('a')['href']
+                # Only prepend domain if URL is relative
+                if href.startswith('http'):
+                    list_of_cells.append(href)
+                else:
+                    list_of_cells.append("https://www.mbp.state.md.us" + href)
+            else:
+                text = ' '.join(cell.text.split())
+                list_of_cells.append(text)
+        list_of_rows.append(list_of_cells)
+
+    outfile = open("alerts.csv", "w")
+    writer = csv.writer(outfile)
+    writer.writerow(["year", "url", "name", "type", "date"])
+    writer.writerows(list_of_rows)
+
+Notice we add the year to each row before processing the table cells, and we've updated our header row to include "year" as the first column.
+
+We also check if the URL already starts with "http" before prepending the domain - when using POST requests, the server sometimes returns absolute URLs instead of relative ones.
+
+Testing the year selector
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now you can run the scraper with different years:
+
+.. code:: bash
+
+  # Get data for the current year (default)
+  $ python scrape.py
+
+  # Get data for 2025
+  $ python scrape.py 2025
+
+  # Get data for 2020
+  $ python scrape.py 2020
+
+Each time you run it with a different year, the CSV will contain sanctions from that specific year with the year included in each row.
+
+Taking it further
+~~~~~~~~~~~~~~~~~
+
+If you wanted to get really fancy, you could write a loop to scrape all available years (2010-2026) and combine them into a single CSV file. Here's a hint on how you might approach that:
+
+.. code-block:: python
+
+    import csv
+    import requests
+    from bs4 import BeautifulSoup
+
+    url = 'https://www.mbp.state.md.us/sanctions.aspx'
+    all_rows = []
+
+    # Loop through years from 2010 to 2026
+    for year in range(2010, 2027):
+        print(f"Scraping {year}...")
+        response = requests.post(url, 
+                                data={'ddlYear': str(year)},
+                                headers={'User-Agent': 'Mozilla/5.0'})
+        html = response.content
+        
+        soup = BeautifulSoup(html, features="html.parser")
+        table = soup.find('tbody')
+        
+        for row in table.find_all('tr'):
+            list_of_cells = [str(year)]
+            for cell in row.find_all('td'):
+                if cell.find('a'):
+                    href = cell.find('a')['href']
+                    if href.startswith('http'):
+                        list_of_cells.append(href)
+                    else:
+                        list_of_cells.append("https://www.mbp.state.md.us" + href)
+                else:
+                    text = ' '.join(cell.text.split())
+                    list_of_cells.append(text)
+            all_rows.append(list_of_cells)
+
+    outfile = open("all_sanctions.csv", "w")
+    writer = csv.writer(outfile)
+    writer.writerow(["year", "url", "name", "type", "date"])
+    writer.writerows(all_rows)
+    print(f"Scraped {len(all_rows)} total records!")
+
+This will take a bit longer to run since it's making 17 separate requests, but you'll end up with a comprehensive dataset of all sanctions from 2010 to 2026!
+
+.. note::
+
+    The repository includes two bonus scripts you can reference:
+    
+    - ``scrape_year.py`` - Accepts a year argument and adds the year column
+    - ``scrape_all_years.py`` - Scrapes all years from 2010 to present
+    
+These skills will serve you well as you continue to build more sophisticated scrapers and data collection tools. Happy scraping!
