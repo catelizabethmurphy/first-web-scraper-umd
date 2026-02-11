@@ -825,7 +825,7 @@ Now that we have our hands on the table, we need to convert the rows in the tabl
 BeautifulSoup gets us going by allowing us to dig down into our table and return a list of rows, which are created in HTML using ``<tr>`` tags inside the table.
 
 .. code-block:: python
-    :emphasize-lines: 12,13
+    :emphasize-lines: 11-12
 
     import requests
     from bs4 import BeautifulSoup
@@ -935,7 +935,7 @@ Save and rerun the script. You should see a big bunch of data dumped out into th
 We've got much of the information we want, but there's an important thing missing - the links to the various reports! Using `cell.text` just gives us the text inside an HTML tag, not any HTML it contains, including URLs. We can get those by checking to see if there is a link and, if so, grabbing the `href` tag instead of the text.
 
 .. code-block:: python
-    :emphasize-lines: 15-18
+    :emphasize-lines: 15-19
 
     import requests
     from bs4 import BeautifulSoup
@@ -965,7 +965,7 @@ Save and rerun the script.
 To write that list out to a comma-delimited file, we need to import Python's built-in ``csv`` module at the top of the file. Then, at the botton, we will create a new file, hand it off to the ``csv`` module, and then lead on a handy tool it has called ``writerows`` to dump out our list of lists.
 
 .. code-block:: python
-    :emphasize-lines: 1,22-24
+    :emphasize-lines: 1,23-25
 
     import csv
     import requests
@@ -1011,7 +1011,7 @@ Here's why. If you go back and look closely, our script is only looping through 
 But rather than bend over backwords to dig them out of the page, let's try something a little different. Let's just skip the first row when we loop though, and then write the headers out ourselves at the end.
 
 .. code-block:: python
-    :emphasize-lines: 13,22
+    :emphasize-lines: 25
 
     import csv
     import requests
@@ -1049,7 +1049,7 @@ Save and run the script once more.
 Our headers are now there, but there's still a problem here: the URLs are relative, not full ones. We can't just copy them into a browser or click on them. Let's fix that:
 
 .. code-block:: python
-    :emphasize-lines: 16
+    :emphasize-lines: 17
 
     import csv
     import requests
@@ -1133,7 +1133,7 @@ The year dropdown works by submitting a form to the server. When you select a di
 Looking at the page source, we can see the form uses ASP.NET ViewState (those hidden fields with long encoded values). Fortunately, we can make this work by sending a POST request with the year parameter:
 
 .. code-block:: python
-    :emphasize-lines: 14-18
+    :emphasize-lines: 15-18
 
     import csv
     import sys
@@ -1163,7 +1163,7 @@ Adding the year to our output
 Now let's include the year as a column in our CSV output so we know which year each record is from:
 
 .. code-block:: python
-    :emphasize-lines: 27,31
+    :emphasize-lines: 27,30-35,43
 
     import csv
     import sys
