@@ -22,16 +22,36 @@ for year in range(2021, 2027):
     for row in table.find_all('tr'):
         list_of_cells = []
         list_of_cells.append(year)
-        for cell in row.find_all('td'):
-            if cell.find('a'):
-                href = cell.find('a')['href']
-                if href.startswith('http'):
-                    list_of_cells.append(href)
-                else:
-                    list_of_cells.append("https://www.mbp.state.md.us" + href)
+        cells = row.find_all('td')
+        
+        # Check structure: 3 columns (old) or 4 columns (new)
+        if len(cells) == 3:
+            # Older years: link contains name, type, date
+            href = cells[0].find('a')['href']
+            if href.startswith('http'):
+                list_of_cells.append(href)
             else:
+                list_of_cells.append("https://www.mbp.state.md.us" + href)
+            # Name is in the link text
+            name = ' '.join(cells[0].find('a').text.split())
+            list_of_cells.append(name)
+            # Type and date
+            for cell in cells[1:]:
                 text = ' '.join(cell.text.split())
                 list_of_cells.append(text)
+        else:
+            # Current year: link, name, type, date (4 columns)
+            for cell in cells:
+                if cell.find('a'):
+                    href = cell.find('a')['href']
+                    if href.startswith('http'):
+                        list_of_cells.append(href)
+                    else:
+                        list_of_cells.append("https://www.mbp.state.md.us" + href)
+                else:
+                    text = ' '.join(cell.text.split())
+                    list_of_cells.append(text)
+        
         all_rows.append(list_of_cells)
     
 outfile = open("alerts.csv", "w")
