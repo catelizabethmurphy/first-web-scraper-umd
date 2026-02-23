@@ -36,7 +36,7 @@ for year in range(2021, 2027):
             name = ' '.join(cells[0].find('a').text.split())
             list_of_cells.append(name)
             # Type and date
-            for cell in cells[1:]:
+            for cell in cells[1:3]:
                 text = ' '.join(cell.text.split())
                 list_of_cells.append(text)
         else:
@@ -48,7 +48,7 @@ for year in range(2021, 2027):
             else:
                 list_of_cells.append("https://www.mbp.state.md.us" + href)
             # Process remaining cells (name, type, date)
-            for cell in cells[1:]:
+            for cell in cells[1:4]:
                 text = ' '.join(cell.text.split())
                 list_of_cells.append(text)
         

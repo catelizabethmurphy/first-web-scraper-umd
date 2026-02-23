@@ -1,0 +1,37 @@
+name: Daily Physician Alerts Scraper
+
+on:
+  schedule:
+    # Run daily at 6:00 AM UTC (adjust timezone as needed)
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run scraper
+      run: |
+        cd scrapers/physicians
+        python scrape.py
+        
+    - name: Commit and push if changes
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add scrapers/physicians/alerts.csv
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update physician alerts data - $(date +'%Y-%m-%d')" && git push)
