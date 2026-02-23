@@ -27,7 +27,7 @@ jobs:
     - name: Run scraper
       run: |
         cd scrapers/physicians
-        python scrape.py
+        python scrape.py 2026
         
     - name: Commit and push if changes
       run: |

@@ -36,6 +36,10 @@ else
     echo "Warning: requirements.txt not found."
 fi
 
+# Install sqlite-utils and datasette
+echo "Installing sqlite-utils and datasette..."
+pip install sqlite-utils datasette
+
 echo ""
 echo "Setup complete!"
 echo ""

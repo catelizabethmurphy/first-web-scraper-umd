@@ -6,7 +6,14 @@ from bs4 import BeautifulSoup
 
 all_rows = []
 current_year = datetime.now().year
-for year in range(2021, 2027):
+
+# Check if specific years are provided as command-line arguments
+if len(sys.argv) > 1:
+    years_to_scrape = [int(year) for year in sys.argv[1:]]
+else:
+    years_to_scrape = [2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025, 2026]
+
+for year in years_to_scrape:
     print(f"Scraping {year}...")
     if int(year) == current_year:
         url = 'https://www.mbp.state.md.us/sanctions.aspx'
